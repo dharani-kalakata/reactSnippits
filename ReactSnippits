@@ -1,0 +1,177 @@
+React Snippits
+
+----------------------------------------------------------------------------
+
+# Map - Funtion ( should only be used on list ) 
+
+{
+    data.map(({item}) => {
+        return(
+            <div key={item.id}>
+                <h6>{item.name}</h6>
+                <p>{item.email}</p>
+            </div>
+        )
+    })
+}
+
+------------------------------------------------------------------------
+
+# UseEffect Rendering on Condition | Utilizing state
+
+ - intialization
+
+ const [ApiData, setApiData] = useState(false)
+
+ useEffect(() => {
+        fetch('http://localhost:3000/contacts')
+        .then(res => res.json())
+        .then(data => setApiData(data));
+      }
+    , [])
+
+ - Utilization
+
+ {ApiData ? ApiData.map((item) => {
+            return(
+                <div key={item.id}>
+                    <h6>{item.name}</h6>
+                    <p>{item.email}</p>
+                </div>
+            )
+        }) : 'Loading'}
+
+----------------------------------------------------------------------
+# Redering Component when condition met | using PROP to the same component
+
+import TestComponent from './TestComponent'
+
+ - Intiallization
+ const [logging, setlogging] = useState(false)
+
+ - Utilization
+ Check LogIn Status : {logging ? <TestComponent prop="LogIN"/> : 'Logged Out'}
+
+
+``src/components/``
+
+
+export default function TestComponent({prop}) {
+  return (
+    <div>
+        <h6>{prop}</h6>
+    </div>
+
+----------------------------------------------------------------------
+# If condition in return statment
+
+  {(() => {
+        if (data != null) {
+          return (
+           <div></div>
+          )
+        } 
+      })()
+   }
+
+----------------------------------------------------------------------
+# Input Tag
+
+ const handleDelete = (e) => {
+    setdataa(e.target.value)
+  }
+
+<input onChange={handleIdChange} type="text" placeholder="Enter ID" />
+
+---------------------------------------------------------------------------
+
+# Button 
+
+<input type="button" value="delete" onClick={() => deletePhoto({id:dataa})}/>
+
+----------------------------------------------------------------------------------------------------------------------------------
+
+# RTK Queary
+
+``src/features/ApiSlice.js``
+
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+
+
+// Define a service using a base URL and expected endpoints
+export const contactApi = createApi({
+  reducerPath: 'contactApi',
+  baseQuery: fetchBaseQuery({ baseUrl: 'http://localhost:3004' }),
+  endpoints: (builder) => ({
+    getContacts: builder.query({
+      query: () => `contacts`,
+      providesTags: ['Contacts'],  
+    }),
+
+    getContactById: builder.query({
+      query: (id) => `contacts/${id}`,
+      invalidatesTags: ['Contacts'],
+    }),
+
+    deleteContactById: builder.mutation({
+      query: ({id}) => ({url: `contacts/${id}`, method: 'DELETE', body: id}),
+      invalidatesTags: ['Contacts'],
+    }),
+
+
+export const {  useGetContactByIdQuery,useGetContactsQuery, useDeleteContactByIdMutation } = contactApi
+
+
+``src/store.js``
+
+import { configureStore, getDefaultMiddleware  } from '@reduxjs/toolkit'
+import counterReducer from '../features/counter/counterSlice'
+import { setupListeners } from '@reduxjs/toolkit/query'
+import { pokemonApi, contactApi} from '../features/APISlice'
+
+//for to configure mutiple api to middleware - used for cacheing
+const middleware = getDefaultMiddleware().concat(
+  contactApi.middleware,
+
+  pokemonApi.middleware
+);
+export const store = configureStore({
+  reducer: {
+    counter: counterReducer,
+
+    [pokemonApi.reducerPath]: pokemonApi.reducer,
+    [contactApi.reducerPath]: contactApi.reducer,
+
+  },
+  middleware,
+});
+
+setupListeners(store.dispatch)
+
+ - utilization 
+
+``src/components/TestingApi.js``
+
+import { useGetContactByIdQuery,useGetContactsQuery, useDeleteContactByIdMutation,useAddContactMutation } from './features/APISlice'
+
+export default function TestApi() {
+    const [id, setid] = useState('')
+    const { data, error, isLoading } = useGetContactByIdQuery('7')
+    const { data:contacts, error:contactsError, isLoading:contactsLoading } = useGetContactsQuery()
+    const [deleteContact] = useDeleteContactByIdMutation()
+    const handleIdChange = (e) => {
+        setid(e.target.value)
+      }
+    const [addContact] = useAddContactMutation()
+  return (
+    <div>
+        {JSON.stringify(contacts)}
+        <input onChange={handleIdChange} type="text" placeholder="Enter ID to be deleted" />
+        <input type="button" value="delete" onClick={() => deleteContact({id:id})}/>    
+        <button onClick={() => addContact({"id":51,"name":"William Moore","email":"william.moore@example.com","phone":"+1 (999) 888-7777","address":"333 Pine St, Hillside, USA"})}>Add Contact</button>
+    </div>
+
+  )
+}
+------------------------------------------------------------------------------------------------------------------------
+
