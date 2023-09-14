@@ -14,7 +14,6 @@ React Snippits
         )
     })
 }
-
 ------------------------------------------------------------------------
 
 # UseEffect Rendering on Condition | Utilizing state
@@ -28,7 +27,7 @@ React Snippits
         .then(res => res.json())
         .then(data => setApiData(data));
       }
-    , [])
+    , [])    // Here in this list we can mention dependecy 
 
  - Utilization
 
@@ -39,9 +38,130 @@ React Snippits
                     <p>{item.email}</p>
                 </div>
             )
-        }) : 'Loading'}
+        }) : 'Loading'}    
 
-----------------------------------------------------------------------
+-------------------------------------------------------------------------
+
+# Context api ( Top 3 in Hooks - used to Aviod Prop drilling)
+
+``src/App.js``
+
+import React, { createContext, useState } from 'react'
+
+export const MyContext = createContext("");
+export default function App() {
+  const [text, setText] = useState("eswar");
+  return (
+    <div>
+      <MyContext.Provider value={{ text, setText }}>
+        <Shop/>
+      </MyContext.Provider>
+    </div>
+  );
+}
+
+``src/Shop.js``
+
+import React, { useContext } from 'react'
+import { MyContext } from './App'
+
+export default function Shop() {
+  const { text, setText } = useContext(MyContext);
+  return (
+    <div>
+      <h1>{text}</h1>
+      <button onClick={() => setText('Hello, world!')}>
+        Click me
+      </button>    
+    </div>
+  )
+}
+-------------------------------------------------------------------------
+# React Function ( UI extraction )
+
+import React from 'react'
+
+export default function Shop() {
+  return (
+    <div>Shop</div>
+  )
+}
+-------------------------------------------------------------------------
+# Custom Hooks  ( Logic Extraction - FileName must start with keyword "use" ) 
+ - Example:1 
+``src/useMyApi.js``
+
+import React, { useEffect, useState } from 'react'
+
+
+export default function useMyApi(url) {
+    const [fetchedData, setfetchedData] = useState('')
+
+    useEffect(() => {
+        fetch(url)
+            .then(response => response.json())
+            .then(json => setfetchedData(json))
+ 
+    }, [url])
+    
+  return [fetchedData ]
+}
+
+``src/App.js``
+
+import useMyApi from './useMyApi';
+export const MyContext = createContext("");
+
+export default function App() {
+
+  const [fetchedData] = useMyApi('https://jsonplaceholder.typicode.com/todos/1');
+  return (
+    <div>
+
+      {JSON.stringify(fetchedData)}
+
+    </div>
+  );
+}
+
+ - Example: 2
+``src/useMyCustomHooks.js``
+
+import React, { useState } from 'react'
+
+export default function useMyCustomHook() {
+    const [first, setfirst] = useState(10)
+    const Increament = () => {
+        setfirst(first+10)
+    }
+    const Decreament = () => {
+        setfirst(first-10)
+    }
+    
+  return [first, Increament, Decreament]
+}
+
+``src/App.js``
+
+import React from 'react'
+import useMyCustomHook from './useMyCustomHook';
+
+
+export default function App() {
+
+  const [first, Increament, Decreament] = useMyCustomHook();
+  return (
+   <div>
+
+      <button onClick={Increament}>Increament</button>
+      <button onClick={Decreament}>Decreament</button>
+      <h1>{first}</h1>
+   
+    </div>
+  );
+}
+
+-------------------------------------------------------------------------
 # Redering Component when condition met | using PROP to the same component
 
 import TestComponent from './TestComponent'
@@ -88,6 +208,43 @@ export default function TestComponent({prop}) {
 # Button 
 
 <input type="button" value="delete" onClick={() => deletePhoto({id:dataa})}/>
+
+------------------------------------------------------------------------------
+
+# Routing
+
+import { BrowserRouter, Route, Routes } from 'react-router-dom';  //npm install react-router-dom
+
+``src/index.js``
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.StrictMode>
+    <BrowserRouter>
+    <Routes>
+
+      <Route  path='/' element={<Header/>}>
+
+        <Route index element={<App />} />
+        <Route path='/product' element={<Product />} />
+        <Route path='/product/:id' element={<Product />} />               
+        <Route path='*' element={<NotFound404 />} />
+    
+      </Route>
+
+      <Route path='nested' element={<Header/>}>                      //Nested Routing
+
+        <Route index element={<Nested />} />
+        <Route path='customer' element={<Customer />} />
+        <Route path='*' element={<NotFound404 />} />
+
+      </Route>
+
+    </Routes>
+    </BrowserRouter>   
+  </React.StrictMode>
+);
+
 
 ----------------------------------------------------------------------------------------------------------------------------------
 
@@ -174,4 +331,8 @@ export default function TestApi() {
   )
 }
 ------------------------------------------------------------------------------------------------------------------------
+
+# Best Practice
+- All state should be defined at the top most layer
+
 
