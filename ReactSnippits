@@ -336,3 +336,20 @@ export default function TestApi() {
 - All state should be defined at the top most layer
 
 
+# Commands
+
+-  Fake GraphQL API
+npm install -g json-graphql-server
+
+json-graphql-server db.js --p 4004
+
+- Apollo is state management service like Redux ( we cannot use Redux and apollo together, if we are using Redux we need to use RTK query )
+        https://www.apollographql.com/docs/react/get-started
+
+npm install @apollo/client graphql 
+
+
+
+
+
+#
